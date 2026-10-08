@@ -18,24 +18,23 @@ const NORMAL_WORDS = [
 ];
 
 const ULTRAS_WORDS = [
-  'SHARK FAMILY',
-  'CRAZY BOYS',
-  'ULTRAS HERCULES',
-  'ULTRAS MATADORES',
-  'ULTRAS ASKARY',
-  'ULTRAS RIVALS',
-  'ULTRAS WINNERS',
-  'ULTRAS GREEN BOYS',
-  'ULTRAS EAGLES',
-  'ULTRAS BRIGADE WAJDA',
-  'ULTRAS HELALA BOYS',
-  'ULTRAS IMAZIGHEN',
-  'ULTRAS RED MEN',
-  'ULTRAS FATAL TIGERS',
-  'ULTRAS CAP SOLEIL',
-  'ULTRAS GREN GHOST',
-  'ULTRAS BLACK ARMY',
-  'ULTRAS MAGANA',
+  { name: 'SHARK FAMILY', logo: '/ultras/ULTRAS SHARK FAMILY.png' },
+  { name: 'CRAZY BOYS', logo: '/ultras/CRAZY BOYS.png' },
+  { name: 'ULTRAS HERCULES', logo: '/ultras/ULTRAS HERCULES.png' },
+  { name: 'ULTRAS MATADORES', logo: '/ultras/ULTRAS MATADORES.png' },
+  { name: 'ULTRAS ASKARY', logo: '/ultras/ULTRAS ASKARY.png' },
+  { name: 'ULTRAS WINNERS', logo: '/ultras/ULTRAS WINNERS.png' },
+  { name: 'ULTRAS GREEN BOYS', logo: '/ultras/ULTRAS GREEN BOYS.png' },
+  { name: 'ULTRAS EAGLES', logo: '/ultras/ULTRAS EAGLES.png' },
+  { name: 'ULTRAS BRIGADE', logo: '/ultras/ULTRAS BRIGADE.png' },
+  { name: 'ULTRAS HELALA BOYS', logo: '/ultras/ULTRAS HELALA BOYS.png' },
+  { name: 'ULTRAS IMAZIGHEN', logo: '/ultras/ULTRAS IMAZIGHEN.png' },
+  { name: 'ULTRAS RED MEN', logo: '/ultras/ULTRAS RED MEN.png' },
+  { name: 'ULTRAS FATAL TIGERS', logo: '/ultras/ULTRAS FATAL TIGERS.png' },
+  { name: 'ULTRAS CAP SOLEIL', logo: '/ultras/ULTRAS CAP SOLEIL.png' },
+  { name: 'ULTRAS GHOST', logo: '/ultras/ULTRAS GHOST.png' },
+  { name: 'ULTRAS BLACK ARMY', logo: '/ultras/ULTRAS BLACK ARMY.png' },
+  { name: 'ULTRAS MAGANA', logo: '/ultras/ULTRAS MAGANA.png' }
 ];
 
 const rooms = {};
@@ -43,7 +42,7 @@ const rooms = {};
 // اختيار الكلمة: تناوب بين عادية وأولتراس
 function randomWord(roomId) {
   const room = rooms[roomId];
-  if (!room) return NORMAL_WORDS[Math.floor(Math.random() * NORMAL_WORDS.length)];
+  if (!room) return { word: NORMAL_WORDS[Math.floor(Math.random() * NORMAL_WORDS.length)], logo: null };
 
   const lastType = room.lastWordType || 'normal';
   let type;
@@ -56,8 +55,12 @@ function randomWord(roomId) {
 
   room.lastWordType = type;
 
-  const list = type === 'ultras' ? ULTRAS_WORDS : NORMAL_WORDS;
-  return list[Math.floor(Math.random() * list.length)];
+  if (type === 'ultras') {
+    const item = ULTRAS_WORDS[Math.floor(Math.random() * ULTRAS_WORDS.length)];
+    return { word: item.name, logo: item.logo };
+  } else {
+    return { word: NORMAL_WORDS[Math.floor(Math.random() * NORMAL_WORDS.length)], logo: null };
+  }
 }
 
 function broadcastPlayers(roomId) {
@@ -81,6 +84,7 @@ function stopGame(roomId) {
   }
   room.drawerId = null;
   room.currentWord = null;
+  room.currentLogo = null;
   broadcastPlayers(roomId);
 }
 
@@ -97,12 +101,15 @@ function startRound(roomId) {
   room.round = (room.round || 0) + 1;
   const idx = room.round % room.players.length;
   room.drawerId = room.players[idx].id;
-  room.currentWord = randomWord(roomId);
+
+  const wordData = randomWord(roomId);
+  room.currentWord = wordData.word;
+  room.currentLogo = wordData.logo;
   room.guessedThisRound = [];
 
   io.to(roomId).emit('clear-canvas');
   io.to(roomId).emit('word-length', room.currentWord.length);
-  io.to(room.drawerId).emit('your-word', room.currentWord);
+  io.to(room.drawerId).emit('your-word', room.currentWord, room.currentLogo);
 
   broadcastPlayers(roomId);
   io.to(roomId).emit('system-message', `✏️ دور ${room.players[idx].name} يرسم!`);
