@@ -124,6 +124,17 @@ io.on('connection', (socket) => {
     if (roomId) socket.to(roomId).emit('clear-canvas');
   });
 
+  // ============ الشات للرسام ============
+  socket.on('chat-message', (text) => {
+    const roomId = socket.data.roomId;
+    if (!roomId) return;
+    if (!text || text.length > 200) return;
+    io.to(roomId).emit('chat-message', {
+      name: socket.data.name,
+      text: text
+    });
+  });
+
   socket.on('guess', (text) => {
     const roomId = socket.data.roomId;
     const room = rooms[roomId];
