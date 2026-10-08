@@ -1,6 +1,5 @@
 const socket = io();
 
-// ============ عناصر الصفحة ============
 const login = document.getElementById('login');
 const game = document.getElementById('game');
 const joinBtn = document.getElementById('joinBtn');
@@ -18,6 +17,7 @@ const ctx = canvas.getContext('2d');
 const clearBtn = document.getElementById('clearBtn');
 const eraserBtn = document.getElementById('eraserBtn');
 const brushSize = document.getElementById('brushSize');
+const toolbar = document.getElementById('toolbar');
 
 let myName = '';
 let myRoom = '';
@@ -27,7 +27,6 @@ let isDrawing = false;
 let isEraser = false;
 let lastX = 0, lastY = 0;
 
-// ============ الدخول ============
 joinBtn.onclick = () => {
   const name = nameInput.value.trim();
   const room = roomInput.value.trim();
@@ -38,22 +37,24 @@ joinBtn.onclick = () => {
   login.style.display = 'none';
   game.style.display = 'flex';
   roomCodeEl.textContent = room;
-  resizeCanvas();
+  setTimeout(resizeCanvas, 100);
 };
 
-// ============ Socket Events ============
 socket.on('players', (players) => {
   playerList.innerHTML = '';
+  let iAmDrawer = false;
   players.forEach(p => {
     const li = document.createElement('li');
     li.className = p.isDrawer ? 'drawer' : '';
     li.innerHTML = `<span>${p.isDrawer ? '✏️ ' : ''}${p.name}</span><span>${p.score} نقطة</span>`;
-    if (p.id === socket.id) li.style.border = '2px solid #f39c12';
+    if (p.id === socket.id) {
+      li.style.border = '2px solid #f39c12';
+      iAmDrawer = p.isDrawer;
+    }
     playerList.appendChild(li);
-    if (p.id === socket.id) isDrawer = p.isDrawer;
   });
-  // تعطيل أدوات الرسم للغير رسام
-  const toolbar = document.getElementById('toolbar');
+
+  isDrawer = iAmDrawer;
   toolbar.style.opacity = isDrawer ? '1' : '0.3';
   toolbar.style.pointerEvents = isDrawer ? 'auto' : 'none';
 });
@@ -61,12 +62,16 @@ socket.on('players', (players) => {
 socket.on('your-word', (word) => {
   wordHint.textContent = `✏️ ارسم: ${word}`;
   wordHint.style.color = '#2ecc71';
+  wordHint.style.fontWeight = 'bold';
   isDrawer = true;
+  toolbar.style.opacity = '1';
+  toolbar.style.pointerEvents = 'auto';
 });
 
 socket.on('word-length', (len) => {
   wordHint.textContent = `الكلمة: ${'_ '.repeat(len)} (${len} حروف)`;
   wordHint.style.color = '#fff';
+  wordHint.style.fontWeight = 'normal';
 });
 
 socket.on('timer', (t) => {
@@ -98,18 +103,19 @@ function addChat(text, cls = '') {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// ============ التخمين ============
 function sendGuess() {
   const text = guessInput.value.trim();
   if (!text) return;
-  if (isDrawer) return alert('نتا كترسم، ما تقدرش تخمن!');
+  if (isDrawer) {
+    alert('نتا كترسم، ما تقدرش تخمن!');
+    return;
+  }
   socket.emit('guess', text);
   guessInput.value = '';
 }
 guessBtn.onclick = sendGuess;
 guessInput.onkeypress = (e) => { if (e.key === 'Enter') sendGuess(); };
 
-// ============ الرسم ============
 function resizeCanvas() {
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
@@ -162,7 +168,6 @@ canvas.addEventListener('touchstart', startDraw);
 canvas.addEventListener('touchmove', moveDraw);
 canvas.addEventListener('touchend', endDraw);
 
-// الألوان
 document.querySelectorAll('.color').forEach(btn => {
   btn.onclick = () => {
     currentColor = btn.dataset.color;
@@ -182,7 +187,7 @@ clearBtn.onclick = () => {
   socket.emit('clear-canvas');
 };
 
-// ============ المايك (PeerJS) ============
+// ============ المايك ============
 let peer = null;
 let localStream = null;
 let calls = {};
@@ -191,7 +196,6 @@ const micStatus = document.getElementById('micStatus');
 
 micBtn.onclick = async () => {
   if (localStream) {
-    // طفي
     localStream.getTracks().forEach(t => t.stop());
     localStream = null;
     Object.values(calls).forEach(c => c.close());
@@ -211,16 +215,11 @@ micBtn.onclick = async () => {
     micBtn.classList.add('on');
     micStatus.textContent = 'المايك خدام';
 
-    // إنشاء Peer
     peer = new Peer(socket.id, {
-      // للاختبار فقط — للإنتاج خاصك PeerServer خاصك
-      config: {
-        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-      }
+      config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
     });
 
     peer.on('open', (id) => {
-      console.log('Peer ID:', id);
       socket.emit('mic-on', id);
     });
 
@@ -236,7 +235,6 @@ micBtn.onclick = async () => {
   }
 };
 
-// لما شي واحد كيشعل المايك، عيط ليه
 socket.on('peer-mic-on', (peerId) => {
   if (!peer || !localStream) return;
   if (calls[peerId]) return;
@@ -265,5 +263,4 @@ function playAudio(peerId, stream) {
   audio.srcObject = stream;
 }
 
-// ============ أزرار جانبية ============
 window.addEventListener('resize', resizeCanvas);
