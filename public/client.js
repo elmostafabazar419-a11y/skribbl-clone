@@ -87,6 +87,11 @@ socket.on('chat', ({ name, text }) => {
   addChat(`${name}: ${text}`);
 });
 
+// ============ الشات للرسام ============
+socket.on('chat-message', ({ name, text }) => {
+  addChat(`${name}: ${text}`);
+});
+
 socket.on('clear-canvas', () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 });
@@ -103,22 +108,35 @@ function addChat(text, cls = '') {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-function sendGuess() {
+function sendMessage() {
   const text = guessInput.value.trim();
   if (!text) return;
+
+  // إلا كنت الرسام → شات عادي
   if (isDrawer) {
-    alert('نتا كترسم، ما تقدرش تخمن!');
-    return;
+    socket.emit('chat-message', text);
+  } else {
+    // إلا كنت لاعب عادي → جرب تخمن
+    socket.emit('guess', text);
   }
-  socket.emit('guess', text);
   guessInput.value = '';
 }
-guessBtn.onclick = sendGuess;
-guessInput.onkeypress = (e) => { if (e.key === 'Enter') sendGuess(); };
+guessBtn.onclick = sendMessage;
+guessInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
 
 function resizeCanvas() {
-  canvas.width = canvas.clientWidth;
-  canvas.height = canvas.clientHeight;
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  const newWidth = Math.round(rect.width * dpr);
+  const newHeight = Math.round(rect.height * dpr);
+
+  if (canvas.width === newWidth && canvas.height === newHeight) return;
+
+  canvas.width = newWidth;
+  canvas.height = newHeight;
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.scale(dpr, dpr);
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
 }
@@ -244,7 +262,6 @@ micBtn.onclick = async () => {
     peer.on('open', (id) => {
       socket.emit('mic-on', id);
 
-      // عيط لكل اللي كيستناو
       pendingPeers.forEach((peerId) => {
         if (calls[peerId]) return;
         const call = peer.call(peerId, localStream);
@@ -267,7 +284,6 @@ micBtn.onclick = async () => {
 };
 
 socket.on('peer-mic-on', (peerId) => {
-  // إلا مازال ما شعلناش المايك، سجلو واستنى
   if (!peer || !localStream) {
     pendingPeers.add(peerId);
     return;
@@ -300,3 +316,8 @@ function playAudio(peerId, stream) {
   audio.srcObject = stream;
   audio.play().catch(e => console.log('audio play error:', e));
 }
+
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', () => {
+  setTimeout(resizeCanvas, 300);
+});
