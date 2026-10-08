@@ -198,6 +198,37 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ============ الموسيقى ============
+  socket.on('music-play', (data) => {
+    const roomId = socket.data.roomId;
+    if (!roomId) return;
+    const room = rooms[roomId];
+    if (!room || room.players[0]?.id !== socket.id) return;
+    socket.to(roomId).emit('music-play', data);
+  });
+
+  socket.on('music-pause', () => {
+    const roomId = socket.data.roomId;
+    if (!roomId) return;
+    const room = rooms[roomId];
+    if (!room || room.players[0]?.id !== socket.id) return;
+    socket.to(roomId).emit('music-pause');
+  });
+
+  socket.on('music-volume', (volume) => {
+    const roomId = socket.data.roomId;
+    if (!roomId) return;
+    socket.to(roomId).emit('music-volume', volume);
+  });
+
+  socket.on('music-track', (track) => {
+    const roomId = socket.data.roomId;
+    if (!roomId) return;
+    const room = rooms[roomId];
+    if (!room || room.players[0]?.id !== socket.id) return;
+    socket.to(roomId).emit('music-track', track);
+  });
+
   socket.on('mic-on', (peerId) => {
     socket.to(socket.data.roomId).emit('peer-mic-on', peerId);
   });

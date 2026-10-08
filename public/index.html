@@ -62,6 +62,14 @@
     <button id="micBtn">🎤 تشغيل المايك</button>
     <span id="micStatus">المايك مطفي</span>
   </div>
+
+  <div id="musicPanel">
+    <button id="musicBtn">🎵 تشغيل</button>
+    <input type="range" id="musicVolume" min="0" max="100" value="50" />
+    <select id="musicSelect">
+      <option value="song1.mp3">🎵 أغنية 1</option>
+    </select>
+  </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>

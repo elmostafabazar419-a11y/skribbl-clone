@@ -27,6 +27,52 @@ let isDrawing = false;
 let isEraser = false;
 let lastX = 0, lastY = 0;
 
+// ============ الموسيقى ============
+const musicBtn = document.getElementById('musicBtn');
+const musicVolume = document.getElementById('musicVolume');
+const musicSelect = document.getElementById('musicSelect');
+const musicPanel = document.getElementById('musicPanel');
+let musicAudio = null;
+let musicPlaying = false;
+let isHost = false;
+const DEFAULT_TRACK = 'song1.mp3';
+
+function initMusic(track) {
+  if (musicAudio) {
+    musicAudio.pause();
+    musicAudio = null;
+  }
+  const src = track || DEFAULT_TRACK;
+  musicAudio = new Audio('/music/' + src);
+  musicAudio.loop = true;
+  musicAudio.volume = (musicVolume?.value || 50) / 100;
+}
+
+function playMusic() {
+  if (!musicAudio) initMusic();
+  musicAudio.play().then(() => {
+    musicPlaying = true;
+    if (musicBtn) {
+      musicBtn.textContent = '🔇 إيقاف';
+      musicBtn.classList.add('on');
+    }
+  }).catch(err => {
+    console.error('❌ الموسيقى ما خدمتش:', err);
+  });
+}
+
+function stopMusic() {
+  if (musicAudio) {
+    musicAudio.pause();
+    musicPlaying = false;
+    if (musicBtn) {
+      musicBtn.textContent = '🎵 تشغيل';
+      musicBtn.classList.remove('on');
+    }
+  }
+}
+
+// ============ الدخول ============
 joinBtn.onclick = () => {
   const name = nameInput.value.trim();
   const room = roomInput.value.trim();
@@ -38,8 +84,15 @@ joinBtn.onclick = () => {
   game.style.display = 'flex';
   roomCodeEl.textContent = room;
   setTimeout(resizeCanvas, 100);
+
+  // شغل الموسيقى أوتوماتيكياً
+  setTimeout(() => {
+    initMusic();
+    playMusic();
+  }, 500);
 };
 
+// ============ اللاعبين ============
 socket.on('players', (players) => {
   playerList.innerHTML = '';
   let iAmDrawer = false;
@@ -57,8 +110,18 @@ socket.on('players', (players) => {
   isDrawer = iAmDrawer;
   toolbar.style.opacity = isDrawer ? '1' : '0.3';
   toolbar.style.pointerEvents = isDrawer ? 'auto' : 'none';
+
+  // حدد host
+  if (players.length > 0) {
+    isHost = players[0].id === socket.id;
+    if (musicPanel) {
+      musicPanel.style.opacity = isHost ? '1' : '0.4';
+      musicPanel.style.pointerEvents = isHost ? 'auto' : 'none';
+    }
+  }
 });
 
+// ============ الكلمة ============
 socket.on('your-word', (word, logo) => {
   wordHint.innerHTML = `✏️ ارسم: ${word}`;
   wordHint.style.color = '#2ecc71';
@@ -67,9 +130,7 @@ socket.on('your-word', (word, logo) => {
   toolbar.style.opacity = '1';
   toolbar.style.pointerEvents = 'auto';
 
-  if (logo) {
-    showLogo(logo);
-  }
+  if (logo) showLogo(logo);
 });
 
 function showLogo(url) {
@@ -88,11 +149,6 @@ function hideLogo() {
   if (img) img.style.display = 'none';
 }
 
-function hideLogo() {
-  const img = document.getElementById('logoPreview');
-  if (img) img.style.display = 'none';
-}
-
 socket.on('word-length', (len) => {
   wordHint.textContent = `الكلمة: ${'_ '.repeat(len)} (${len} حروف)`;
   wordHint.style.color = '#fff';
@@ -100,11 +156,13 @@ socket.on('word-length', (len) => {
   hideLogo();
 });
 
+// ============ التايمر ============
 socket.on('timer', (t) => {
   timerDisplay.textContent = `⏰ ${t}`;
   timerDisplay.style.color = t <= 10 ? '#e74c3c' : '#f39c12';
 });
 
+// ============ الشات ============
 socket.on('system-message', (msg) => {
   addChat(msg, 'system');
 });
@@ -115,14 +173,6 @@ socket.on('chat', ({ name, text }) => {
 
 socket.on('chat-message', ({ name, text }) => {
   addChat(`${name}: ${text}`);
-});
-
-socket.on('clear-canvas', () => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-});
-
-socket.on('draw', (data) => {
-  drawLine(data.x0, data.y0, data.x1, data.y1, data.color, data.size);
 });
 
 function addChat(text, cls = '') {
@@ -146,6 +196,15 @@ function sendMessage() {
 }
 guessBtn.onclick = sendMessage;
 guessInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+
+// ============ الرسم ============
+socket.on('clear-canvas', () => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+});
+
+socket.on('draw', (data) => {
+  drawLine(data.x0, data.y0, data.x1, data.y1, data.color, data.size);
+});
 
 function resizeCanvas() {
   const dpr = window.devicePixelRatio || 1;
@@ -300,7 +359,6 @@ micBtn.onclick = async () => {
 
     peer.on('open', (id) => {
       socket.emit('mic-on', id);
-
       pendingPeers.forEach((peerId) => {
         if (calls[peerId]) return;
         const call = peer.call(peerId, localStream);
@@ -356,6 +414,64 @@ function playAudio(peerId, stream) {
   audio.play().catch(e => console.log('audio play error:', e));
 }
 
+// ============ أزرار الموسيقى ============
+if (musicBtn) {
+  musicBtn.onclick = () => {
+    if (!isHost) return;
+    if (musicPlaying) {
+      stopMusic();
+      socket.emit('music-pause');
+    } else {
+      playMusic();
+      socket.emit('music-play', { track: musicSelect?.value || DEFAULT_TRACK });
+    }
+  };
+}
+
+if (musicVolume) {
+  musicVolume.oninput = () => {
+    const vol = musicVolume.value;
+    if (musicAudio) musicAudio.volume = vol / 100;
+    if (isHost) socket.emit('music-volume', vol);
+  };
+}
+
+if (musicSelect) {
+  musicSelect.onchange = () => {
+    if (!isHost) return;
+    const track = musicSelect.value;
+    if (musicAudio) musicAudio.pause();
+    initMusic(track);
+    if (musicPlaying) playMusic();
+    socket.emit('music-track', track);
+    socket.emit('music-play', { track });
+  };
+}
+
+socket.on('music-play', (data) => {
+  if (isHost) return;
+  initMusic(data.track);
+  playMusic();
+});
+
+socket.on('music-pause', () => {
+  if (isHost) return;
+  stopMusic();
+});
+
+socket.on('music-volume', (vol) => {
+  if (isHost) return;
+  if (musicAudio) musicAudio.volume = vol / 100;
+  if (musicVolume) musicVolume.value = vol;
+});
+
+socket.on('music-track', (track) => {
+  if (isHost) return;
+  if (musicAudio) musicAudio.pause();
+  initMusic(track);
+});
+
+// ============ Resize ============
 window.addEventListener('resize', resizeCanvas);
 window.addEventListener('orientationchange', () => {
   setTimeout(resizeCanvas, 300);
