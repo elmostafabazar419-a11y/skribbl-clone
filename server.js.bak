@@ -1,0 +1,163 @@
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: '*' } });
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+// كلمات اللعبة
+const WORDS = [
+  'قطة', 'كلب', 'شمس', 'قمر', 'بيت', 'شجرة', 'طوموبيل', 'طوموبيل',
+  'كتاب', 'طاولة', 'كرسي', 'باب', 'شباك', 'بحر', 'جبل', 'مطار',
+  'طائرة', 'قطار', 'مفتاح', 'ساعة', 'نظارة', 'حوت', 'تفاحة', 'موز',
+  'بيتزا', 'قهوة', 'حلوى', 'وردة', 'نجمة', 'سحابة', 'مطر', 'ثلج'
+];
+
+// الغرف: { roomId: { players: [], drawerId, currentWord, round, scores, timer, revealed } }
+const rooms = {};
+
+function randomWord() {
+  return WORDS[Math.floor(Math.random() * WORDS.length)];
+}
+
+function broadcastPlayers(roomId) {
+  const room = rooms[roomId];
+  if (!room) return;
+  const players = room.players.map(p => ({
+    id: p.id,
+    name: p.name,
+    score: room.scores[p.id] || 0,
+    isDrawer: p.id === room.drawerId
+  }));
+  io.to(roomId).emit('players', players);
+}
+
+function startRound(roomId) {
+  const room = rooms[roomId];
+  if (!room || room.players.length < 2) return;
+
+  // اختيار الرسام التالي
+  room.round = (room.round || 0) + 1;
+  const idx = room.round % room.players.length;
+  room.drawerId = room.players[idx].id;
+  room.currentWord = randomWord();
+  room.revealed = false;
+  room.guessedThisRound = [];
+
+  // إرسال الكلمة للرسام فقط
+  io.to(room.drawerId).emit('your-word', room.currentWord);
+  // إرسال عدد الحروف للبقية
+  io.to(roomId).emit('word-length', room.currentWord.length);
+
+  broadcastPlayers(roomId);
+  io.to(roomId).emit('clear-canvas');
+  io.to(roomId).emit('system-message', `✏️ دور ${room.players[idx].name} يرسم!`);
+
+  // Timer 80 ثانية
+  if (room.timer) clearInterval(room.timer);
+  room.timeLeft = 80;
+  io.to(roomId).emit('timer', room.timeLeft);
+  room.timer = setInterval(() => {
+    room.timeLeft--;
+    io.to(roomId).emit('timer', room.timeLeft);
+    if (room.timeLeft <= 0) {
+      clearInterval(room.timer);
+      io.to(roomId).emit('system-message', `⏰ الوقت سالا! الكلمة كانت: ${room.currentWord}`);
+      setTimeout(() => startRound(roomId), 3000);
+    }
+  }, 1000);
+}
+
+io.on('connection', (socket) => {
+  console.log('✅ متصل:', socket.id);
+
+  socket.on('mic-on', (peerId) => {
+    socket.to(socket.data.roomId).emit('peer-mic-on', peerId);
+});
+
+  socket.on('mic-off', () => {
+   socket.to(socket.data.roomId).emit('peer-mic-off', socket.id);
+});
+
+  socket.on('join-room', ({ roomId, name }) => {
+    socket.join(roomId);
+    if (!rooms[roomId]) {
+      rooms[roomId] = { players: [], scores: {}, round: 0, timer: null };
+    }
+    const room = rooms[roomId];
+    room.players.push({ id: socket.id, name });
+    room.scores[socket.id] = 0;
+    socket.data.roomId = roomId;
+    socket.data.name = name;
+
+    io.to(roomId).emit('system-message', `👋 ${name} دخل للغرفة`);
+    broadcastPlayers(roomId);
+
+    // أول واحد كيبدا اللعبة
+    if (room.players.length === 2) {
+      startRound(roomId);
+    }
+  });
+
+  // رسم
+  socket.on('draw', (data) => {
+    const roomId = socket.data.roomId;
+    if (!roomId) return;
+    socket.to(roomId).emit('draw', data);
+  });
+
+  socket.on('clear-canvas', () => {
+    const roomId = socket.data.roomId;
+    if (roomId) socket.to(roomId).emit('clear-canvas');
+  });
+
+  // تخمين
+  socket.on('guess', (text) => {
+    const roomId = socket.data.roomId;
+    const room = rooms[roomId];
+    if (!room || !room.currentWord) return;
+    if (socket.id === room.drawerId) return; // الرسام ما كيخمنش
+    if (room.guessedThisRound.includes(socket.id)) return; // خمن من قبل
+
+    io.to(roomId).emit('chat', { name: socket.data.name, text, id: socket.id });
+
+    if (text.trim() === room.currentWord) {
+      room.guessedThisRound.push(socket.id);
+      const bonus = Math.max(10, room.timeLeft);
+      room.scores[socket.id] = (room.scores[socket.id] || 0) + bonus;
+      io.to(roomId).emit('system-message', `🎉 ${socket.data.name} خمن الكلمة! (+${bonus})`);
+      broadcastPlayers(roomId);
+
+      // إلا خمنو كاملين
+      const guessers = room.players.filter(p => p.id !== room.drawerId);
+      if (room.guessedThisRound.length >= guessers.length) {
+        clearInterval(room.timer);
+        io.to(roomId).emit('system-message', `✅ الكلمة كانت: ${room.currentWord}`);
+        setTimeout(() => startRound(roomId), 3000);
+      }
+    }
+  });
+
+  socket.on('disconnect', () => {
+    const roomId = socket.data.roomId;
+    if (!roomId || !rooms[roomId]) return;
+    const room = rooms[roomId];
+    room.players = room.players.filter(p => p.id !== socket.id);
+    delete room.scores[socket.id];
+    io.to(roomId).emit('system-message', `👋 ${socket.data.name} خرج`);
+    broadcastPlayers(roomId);
+    if (room.players.length === 0) {
+      clearInterval(room.timer);
+      delete rooms[roomId];
+    }
+  });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`🚀 السيرفر خدام على http://localhost:${PORT}`);
+});
