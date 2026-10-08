@@ -19,24 +19,23 @@ const NORMAL_WORDS = [
 
 const ULTRAS_WORDS = [
   { name: 'SHARK FAMILY', logo: '/ultras/ULTRAS SHARK FAMILY.png' },
-  { name: 'CRAZY BOYS', logo: '/ultras/CRAZY BOYS.png' },
-  { name: 'ULTRAS HERCULES', logo: '/ultras/ULTRAS HERCULES.png' },
-  { name: 'ULTRAS MATADORES', logo: '/ultras/ULTRAS MATADORES.png' },
-  { name: 'ULTRAS ASKARY', logo: '/ultras/ULTRAS ASKARY.png' },
-  { name: 'ULTRAS WINNERS', logo: '/ultras/ULTRAS WINNERS.png' },
-  { name: 'ULTRAS GREEN BOYS', logo: '/ultras/ULTRAS GREEN BOYS.png' },
-  { name: 'ULTRAS EAGLES', logo: '/ultras/ULTRAS EAGLES.png' },
-  { name: 'ULTRAS BRIGADE', logo: '/ultras/ULTRAS BRIGADE.png' },
-  { name: 'ULTRAS HELALA BOYS', logo: '/ultras/ULTRAS HELALA BOYS.png' },
-  { name: 'ULTRAS IMAZIGHEN', logo: '/ultras/ULTRAS IMAZIGHEN.png' },
-  { name: 'ULTRAS RED MEN', logo: '/ultras/ULTRAS RED MEN.png' },
-  { name: 'ULTRAS FATAL TIGERS', logo: '/ultras/ULTRAS FATAL TIGERS.png' },
+  { name: 'CRAZY BOYS', logo: '/ultras/CRAZY BOYS.jpg' },
+  { name: 'ULTRAS HERCULES', logo: '/ultras/ULTRAS HERCULES.jpg' },
+  { name: 'ULTRAS MATADORES', logo: '/ultras/ULTRAS MATADORES.jpg' },
+  { name: 'ULTRAS ASKARY', logo: '/ultras/ULTRAS ASKARY.jpg' },
+  { name: 'ULTRAS WINNERS', logo: '/ultras/ULTRAS WINNERS.jpg' },
+  { name: 'ULTRAS GREEN BOYS', logo: '/ultras/ULTRAS GREEN BOYS.jpg' },
+  { name: 'ULTRAS EAGLES', logo: '/ultras/ULTRAS EAGLES.jpg' },
+  { name: 'ULTRAS BRIGADE', logo: '/ultras/ULTRAS BRIGADE.jpg' },
+  { name: 'ULTRAS HELALA BOYS', logo: '/ultras/ULTRAS HELALA BOYS.jpg' },
+  { name: 'ULTRAS IMAZIGHEN', logo: '/ultras/ULTRAS IMAZEGHEN.png' },
+  { name: 'ULTRAS RED MEN', logo: '/ultras/ULTRAS RED MEN.jpg' },
+  { name: 'ULTRAS FATAL TIGERS', logo: '/ultras/ULTRAS FATAL TIGERS.webp' },
   { name: 'ULTRAS CAP SOLEIL', logo: '/ultras/ULTRAS CAP SOLEIL.png' },
-  { name: 'ULTRAS GHOST', logo: '/ultras/ULTRAS GHOST.png' },
-  { name: 'ULTRAS BLACK ARMY', logo: '/ultras/ULTRAS BLACK ARMY.png' },
-  { name: 'ULTRAS MAGANA', logo: '/ultras/ULTRAS MAGANA.png' }
+  { name: 'ULTRAS GHOST', logo: '/ultras/ULTRAS GHOST.jpg' },
+  { name: 'ULTRAS BLACK ARMY', logo: '/ultras/ULTRAS BLACK ARMY.webp' },
+  { name: 'ULTRAS MAGANA', logo: '/ultras/ULTRAS MAGANA.jpg' }
 ];
-
 const rooms = {};
 
 // اختيار الكلمة: تناوب بين عادية وأولتراس
