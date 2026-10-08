@@ -35,8 +35,7 @@ const musicPanel = document.getElementById('musicPanel');
 let musicAudio = null;
 let musicPlaying = false;
 let isHost = false;
-const DEFAULT_TRACK = 'song1.mp3';
-
+const DEFAULT_TRACK = 'dl.mp3';
 function initMusic(track) {
   if (musicAudio) {
     musicAudio.pause();
