@@ -112,11 +112,9 @@ function sendMessage() {
   const text = guessInput.value.trim();
   if (!text) return;
 
-  // إلا كنت الرسام → شات عادي
   if (isDrawer) {
     socket.emit('chat-message', text);
   } else {
-    // إلا كنت لاعب عادي → جرب تخمن
     socket.emit('guess', text);
   }
   guessInput.value = '';
@@ -143,17 +141,22 @@ function resizeCanvas() {
 
 function getPos(e) {
   const rect = canvas.getBoundingClientRect();
-  const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-  const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
-  return { x: x * (canvas.width / rect.width), y: y * (canvas.height / rect.height) };
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  const x = (clientX - rect.left) / rect.width;
+  const y = (clientY - rect.top) / rect.height;
+  return { x, y };
 }
 
 function drawLine(x0, y0, x1, y1, color, size) {
+  const w = canvas.width / (window.devicePixelRatio || 1);
+  const h = canvas.height / (window.devicePixelRatio || 1);
+
   ctx.strokeStyle = color;
   ctx.lineWidth = size;
   ctx.beginPath();
-  ctx.moveTo(x0, y0);
-  ctx.lineTo(x1, y1);
+  ctx.moveTo(x0 * w, y0 * h);
+  ctx.lineTo(x1 * w, y1 * h);
   ctx.stroke();
 }
 
@@ -171,8 +174,19 @@ function moveDraw(e) {
   const p = getPos(e);
   const color = isEraser ? '#ffffff' : currentColor;
   const size = isEraser ? 30 : parseInt(brushSize.value);
-  drawLine(lastX, lastY, p.x, p.y, color, size);
-  socket.emit('draw', { x0: lastX, y0: lastY, x1: p.x, y1: p.y, color, size });
+
+  const data = {
+    x0: lastX,
+    y0: lastY,
+    x1: p.x,
+    y1: p.y,
+    color,
+    size
+  };
+
+  drawLine(data.x0, data.y0, data.x1, data.y1, color, size);
+  socket.emit('draw', data);
+
   lastX = p.x; lastY = p.y;
 }
 
@@ -324,7 +338,6 @@ if (addBotBtn) {
     socket.emit('add-bot');
   };
 }
-
 
 window.addEventListener('resize', resizeCanvas);
 window.addEventListener('orientationchange', () => {

@@ -10,10 +10,35 @@ const io = new Server(server, { cors: { origin: '*' } });
 app.use(express.static(path.join(__dirname, 'public')));
 
 const WORDS = [
+  // كلمات عربية
   'قطة', 'كلب', 'شمس', 'قمر', 'بيت', 'شجرة', 'طوموبيل', 'كتاب',
   'طاولة', 'كرسي', 'باب', 'شباك', 'بحر', 'جبل', 'مطار', 'طائرة',
   'قطار', 'مفتاح', 'ساعة', 'نظارة', 'حوت', 'تفاحة', 'موز', 'بيتزا',
-  'قهوة', 'حلوى', 'وردة', 'نجمة', 'سحابة', 'مطر', 'ثلج', 'خبز'
+  'قهوة', 'حلوى', 'وردة', 'نجمة', 'سحابة', 'مطر', 'ثلج', 'خبز',
+  // أسماء الأولتراس
+  'SHARK FAMILY',
+  'CRAZY BOYS',
+  'ULTRAS HERCULES',
+  'ULTRAS MATADORES',
+  'ULTRAS ASKARY',
+  'ULTRAS RIVALS',
+  'ULTRAS WINNERS',
+  'ULTRAS GREEN BOYS',
+  'ULTRAS EAGLES',
+  'ULTRAS BRIGADE',
+  'ULTRAS HELALA BOYS',
+  'ULTRAS IMAZIGHEN',
+  'ULTRAS RED MEN',
+  'ULTRAS FATAL TIGERS',
+  'ULTRAS DIMA DIMA',
+  'ULTRAS CAP SOLEIL',
+  'ULTRAS PHOBOS',
+  'ULTRAS GHOST',
+  'ULTRAS BLACK ARMY',
+  'ULTRAS VIRAGE',
+  'ULTRAS LIBERTY',
+  'ULTRAS MAGANA',
+  'ULTRAS GREEN GLADIATORS'
 ];
 
 // ============ البوت ============
@@ -68,7 +93,7 @@ function stopGame(roomId) {
 function addBot(roomId) {
   const room = rooms[roomId];
   if (!room) return;
-  if (room.players.find(p => isBot(p.id))) return; // عندو بوت ديجا
+  if (room.players.find(p => isBot(p.id))) return;
 
   botCounter++;
   const botId = BOT_ID_PREFIX + botCounter;
@@ -80,7 +105,6 @@ function addBot(roomId) {
   io.to(roomId).emit('system-message', `🤖 ${botName} دخل للغرفة`);
   broadcastPlayers(roomId);
 
-  // إلا كان غير البوت + لاعب وحد = 2، بدا اللعبة
   if (room.players.length >= 2 && !room.timer) {
     startRound(roomId);
   }
@@ -99,7 +123,6 @@ function removeBot(roomId) {
   io.to(roomId).emit('system-message', `🤖 ${bot.name} خرج`);
   broadcastPlayers(roomId);
 
-  // إلا كان البوت هو الرسام، بدا جولة جديدة
   if (room.drawerId === bot.id) {
     if (room.timer) {
       clearInterval(room.timer);
@@ -115,7 +138,6 @@ function botDraw(roomId, word) {
   if (!room) return;
   if (room.drawerId !== room.players.find(p => isBot(p.id))?.id) return;
 
-  // البوت غادي يرسم أشكال بسيطة حسب الكلمة
   const shapes = getShapesForWord(word);
   let step = 0;
 
@@ -134,34 +156,33 @@ function botDraw(roomId, word) {
   }, 300);
 }
 
-// أشكال بسيطة لكل كلمة
+// ============ أشكال البوت (بالنسب 0-1) ============
 function getShapesForWord(word) {
-  const w = 800, h = 600;
   const lines = [];
 
   const addLine = (x0, y0, x1, y1, color = '#000', size = 4) => {
     lines.push({ x0, y0, x1, y1, color, size });
   };
 
-  // رسم دائرة/مربع بسيط + بعض الخطوط
-  const cx = w / 2, cy = h / 2;
+  // إحداثيات نسبية (0-1) — كتخدم على جميع الشاشات
+  const cx = 0.5, cy = 0.5;
 
-  // إطار
-  addLine(cx - 100, cy - 100, cx + 100, cy - 100);
-  addLine(cx + 100, cy - 100, cx + 100, cy + 100);
-  addLine(cx + 100, cy + 100, cx - 100, cy + 100);
-  addLine(cx - 100, cy + 100, cx - 100, cy - 100);
+  // إطار (مربع)
+  addLine(cx - 0.15, cy - 0.15, cx + 0.15, cy - 0.15);
+  addLine(cx + 0.15, cy - 0.15, cx + 0.15, cy + 0.15);
+  addLine(cx + 0.15, cy + 0.15, cx - 0.15, cy + 0.15);
+  addLine(cx - 0.15, cy + 0.15, cx - 0.15, cy - 0.15);
 
   // عيون
-  addLine(cx - 40, cy - 20, cx - 40, cy);
-  addLine(cx + 40, cy - 20, cx + 40, cy);
+  addLine(cx - 0.05, cy - 0.05, cx - 0.05, cy);
+  addLine(cx + 0.05, cy - 0.05, cx + 0.05, cy);
 
   // فم
-  addLine(cx - 40, cy + 40, cx + 40, cy + 40);
+  addLine(cx - 0.05, cy + 0.07, cx + 0.05, cy + 0.07);
 
-  // خطوط إضافية حسب الكلمة
+  // خط إضافي إلا كانت الكلمة طويلة
   if (word.length > 3) {
-    addLine(cx - 80, cy + 80, cx + 80, cy + 80, '#6c5ce7', 3);
+    addLine(cx - 0.12, cy + 0.13, cx + 0.12, cy + 0.13, '#6c5ce7', 3);
   }
 
   return lines;
@@ -173,9 +194,8 @@ function scheduleBotGuess(roomId) {
   if (!room) return;
   const bot = room.players.find(p => isBot(p.id));
   if (!bot) return;
-  if (room.drawerId === bot.id) return; // البوت هو الرسام
+  if (room.drawerId === bot.id) return;
 
-  // البوت كيخمن بعد 3-10 ثواني
   const delay = 3000 + Math.random() * 7000;
 
   if (room.botGuessTimer) clearTimeout(room.botGuessTimer);
@@ -186,7 +206,6 @@ function scheduleBotGuess(roomId) {
     if (room.drawerId === bot.id) return;
     if (room.guessedThisRound.includes(bot.id)) return;
 
-    // 70% فرصة يخمن صح
     const willGuessCorrect = Math.random() < 0.7;
 
     if (willGuessCorrect) {
@@ -206,7 +225,6 @@ function scheduleBotGuess(roomId) {
         setTimeout(() => startRound(roomId), 3000);
       }
     } else {
-      // تخمين غالط
       const wrongGuesses = ['ما عرفت', 'شي حاجة', 'صعبة', '؟؟؟'];
       const wrong = wrongGuesses[Math.floor(Math.random() * wrongGuesses.length)];
       io.to(roomId).emit('chat', { name: bot.name, text: wrong, id: bot.id });
@@ -237,11 +255,9 @@ function startRound(roomId) {
   broadcastPlayers(roomId);
   io.to(roomId).emit('system-message', `✏️ دور ${room.players[idx].name} يرسم!`);
 
-  // إلا كان البوت هو الرسام
   if (isBot(room.drawerId)) {
     setTimeout(() => botDraw(roomId, room.currentWord), 1000);
   } else {
-    // إلا كان البوت ماشي رسام، يخمن
     scheduleBotGuess(roomId);
   }
 
@@ -284,7 +300,6 @@ io.on('connection', (socket) => {
     io.to(roomId).emit('system-message', `👋 ${name} دخل للغرفة`);
     broadcastPlayers(roomId);
 
-    // إلا كان لاعب حقيقي وحد، حيد البوت
     const realPlayers = room.players.filter(p => !isBot(p.id));
     if (realPlayers.length >= 2) {
       removeBot(roomId);
@@ -342,7 +357,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // ============ إضافة بوت يدوياً ============
   socket.on('add-bot', () => {
     const roomId = socket.data.roomId;
     if (!roomId) return;
@@ -366,13 +380,11 @@ io.on('connection', (socket) => {
     io.to(roomId).emit('system-message', `👋 ${socket.data.name} خرج`);
     broadcastPlayers(roomId);
 
-    // إلا بقا لاعب حقيقي وحد، زيد البوت
     const realPlayers = room.players.filter(p => !isBot(p.id));
     if (realPlayers.length === 1 && !room.players.find(p => isBot(p.id))) {
       setTimeout(() => addBot(roomId), 1000);
     }
 
-    // إلا بقا لاعب وحد (بوت ولا حقيقي)، وقف اللعبة
     if (realPlayers.length < 1) {
       stopGame(roomId);
     }
