@@ -1,67 +1,100 @@
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
 
 body {
   background: #1e1e2e;
   color: #fff;
-  height: 100vh;
-  overflow: hidden;
 }
 
-/* شاشة الدخول */
+/* ============ شاشة الدخول ============ */
 #login {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100vh;
+  height: 100dvh;
   gap: 15px;
+  padding: 20px;
 }
-#login h1 { font-size: 3rem; margin-bottom: 20px; }
+#login h1 {
+  font-size: clamp(1.8rem, 6vw, 3rem);
+  margin-bottom: 20px;
+  text-align: center;
+}
 #login input, #login button {
-  padding: 12px 20px;
-  font-size: 1.1rem;
+  padding: 14px 20px;
+  font-size: 1rem;
   border-radius: 10px;
   border: none;
-  width: 300px;
+  width: 100%;
+  max-width: 320px;
   text-align: center;
 }
 #login input { background: #2a2a3e; color: #fff; }
-#login button { background: #6c5ce7; color: #fff; cursor: pointer; }
+#login input:focus { outline: 2px solid #6c5ce7; }
+#login button { background: #6c5ce7; color: #fff; cursor: pointer; font-weight: bold; }
 #login button:hover { background: #5b4dd1; }
+#login button:active { transform: scale(0.97); }
 
-/* اللعبة */
-#game { display: flex; flex-direction: column; height: 100vh; }
+/* ============ اللعبة ============ */
+#game { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
 
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
+  padding: 8px 12px;
   background: #2a2a3e;
   border-bottom: 2px solid #6c5ce7;
+  gap: 8px;
+  flex-shrink: 0;
+  font-size: 0.85rem;
 }
-#timerDisplay { font-size: 1.5rem; font-weight: bold; color: #f39c12; }
-#wordDisplay { font-size: 1.2rem; }
+header > div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#timerDisplay { font-size: 1.2rem; font-weight: bold; color: #f39c12; flex-shrink: 0; }
+#wordDisplay { font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; }
 
-main { display: flex; flex: 1; overflow: hidden; }
+main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 
-/* Sidebar */
+/* ============ Sidebar ============ */
 #sidebar {
-  width: 300px;
+  width: 280px;
   background: #2a2a3e;
   display: flex;
   flex-direction: column;
-  padding: 10px;
-  gap: 10px;
-}
-#playerList { list-style: none; overflow-y: auto; max-height: 200px; }
-#playerList li {
   padding: 8px;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+#sidebar h3 { font-size: 0.9rem; }
+
+#playerList {
+  list-style: none;
+  overflow-y: auto;
+  max-height: 30%;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+#playerList li {
+  padding: 6px 8px;
   background: #35354a;
-  margin-bottom: 5px;
-  border-radius: 8px;
+  margin-bottom: 4px;
+  border-radius: 6px;
   display: flex;
   justify-content: space-between;
+  gap: 6px;
 }
 #playerList li.drawer { background: #6c5ce7; }
 
@@ -71,31 +104,36 @@ main { display: flex; flex: 1; overflow: hidden; }
   background: #1e1e2e;
   padding: 8px;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  min-height: 0;
 }
-#chatBox div { margin-bottom: 5px; }
+#chatBox div { margin-bottom: 4px; word-wrap: break-word; }
 #chatBox .system { color: #f39c12; font-style: italic; }
 #chatBox .correct { color: #2ecc71; font-weight: bold; }
 
-#guessArea { display: flex; gap: 5px; }
+#guessArea { display: flex; gap: 5px; flex-shrink: 0; }
 #guessInput {
   flex: 1;
-  padding: 8px;
+  padding: 10px;
   border-radius: 8px;
   border: none;
   background: #1e1e2e;
   color: #fff;
+  font-size: 0.9rem;
+  min-width: 0;
 }
+#guessInput:focus { outline: 2px solid #6c5ce7; }
 #guessBtn {
-  padding: 8px 15px;
+  padding: 10px 15px;
   border-radius: 8px;
   border: none;
   background: #6c5ce7;
   color: #fff;
   cursor: pointer;
+  font-weight: bold;
 }
 
-/* Canvas */
+/* ============ Canvas ============ */
 #canvasArea {
   flex: 1;
   display: flex;
@@ -103,61 +141,227 @@ main { display: flex; flex: 1; overflow: hidden; }
   align-items: center;
   justify-content: center;
   background: #15151f;
-  padding: 10px;
+  padding: 8px;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
+
 #canvas {
   background: #fff;
   border-radius: 10px;
   cursor: crosshair;
+  touch-action: none;
+  display: block;
+  width: 100%;
+  height: 100%;
   max-width: 100%;
-  max-height: calc(100vh - 200px);
+  max-height: 100%;
 }
+
 #toolbar {
   display: flex;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 6px;
   align-items: center;
   background: #2a2a3e;
-  padding: 8px 15px;
+  padding: 6px 10px;
   border-radius: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  flex-shrink: 0;
 }
+
 .color {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: 2px solid #fff;
   cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
 }
-.color:hover { transform: scale(1.1); }
+.color:active { transform: scale(0.9); }
+
 #toolbar button {
-  padding: 6px 12px;
+  padding: 8px 12px;
   border-radius: 8px;
   border: none;
   background: #6c5ce7;
   color: #fff;
   cursor: pointer;
+  font-size: 0.85rem;
+  flex-shrink: 0;
 }
-#brushSize { width: 100px; }
+#toolbar button:active { transform: scale(0.95); }
+#toolbar button.on { background: #2ecc71; }
 
-/* Mic */
+#brushSize {
+  width: 80px;
+  flex-shrink: 0;
+  accent-color: #6c5ce7;
+}
+
+/* ============ Mic ============ */
 #micPanel {
   position: fixed;
-  bottom: 15px;
-  left: 15px;
+  bottom: 10px;
+  left: 10px;
   background: #2a2a3e;
-  padding: 10px 15px;
+  padding: 8px 12px;
   border-radius: 10px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   z-index: 100;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  font-size: 0.85rem;
 }
 #micBtn {
-  padding: 8px 15px;
+  padding: 8px 14px;
   border-radius: 8px;
   border: none;
   background: #e74c3c;
   color: #fff;
   cursor: pointer;
+  font-weight: bold;
 }
 #micBtn.on { background: #2ecc71; }
+#micBtn:active { transform: scale(0.95); }
+
+/* ============ Mobile / Tablet ============ */
+@media (max-width: 900px) {
+  main {
+    flex-direction: column-reverse;
+    overflow: hidden;
+  }
+
+  #sidebar {
+    width: 100%;
+    height: 35vh;
+    max-height: 35vh;
+    padding: 6px;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+
+  #playerList {
+    max-height: 60px;
+    flex-shrink: 0;
+  }
+
+  #chatBox {
+    max-height: 80px;
+    min-height: 50px;
+    flex-shrink: 0;
+  }
+
+  #canvasArea {
+    flex: 1;
+    min-height: 0;
+    padding: 4px;
+    gap: 4px;
+    overflow: hidden;
+  }
+
+  #canvas {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+  }
+
+  #toolbar {
+    padding: 6px 8px;
+    gap: 5px;
+    flex-shrink: 0;
+    width: 100%;
+  }
+
+  .color {
+    width: 28px;
+    height: 28px;
+  }
+
+  #toolbar button {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+
+  #brushSize {
+    width: 70px;
+  }
+
+  header {
+    font-size: 0.75rem;
+    padding: 6px 8px;
+    flex-shrink: 0;
+  }
+
+  #timerDisplay {
+    font-size: 1rem;
+  }
+
+  #micPanel {
+    bottom: 6px;
+    left: 6px;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+
+  #micBtn {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 600px) {
+  #sidebar {
+    height: 30vh;
+    max-height: 30vh;
+  }
+
+  #playerList {
+    max-height: 50px;
+  }
+
+  #chatBox {
+    max-height: 60px;
+  }
+
+  header {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  #toolbar {
+    gap: 4px;
+    padding: 4px 6px;
+  }
+
+  .color {
+    width: 24px;
+    height: 24px;
+  }
+
+  #toolbar button {
+    padding: 5px 8px;
+    font-size: 0.7rem;
+  }
+}
+
+/* Landscape on mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  #sidebar {
+    max-height: 100vh;
+    height: 100vh;
+    width: 200px;
+  }
+  main {
+    flex-direction: row;
+  }
+  #canvasArea {
+    flex: 1;
+  }
+}
