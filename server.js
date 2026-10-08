@@ -36,11 +36,11 @@ const ULTRAS_WORDS = [
   { name: 'ULTRAS BLACK ARMY', logo: '/ultras/ULTRAS BLACK ARMY.webp' },
   { name: 'ULTRAS MAGANA', logo: '/ultras/ULTRAS MAGANA.jpg' }
 ];
+
 const rooms = {};
 
-// اختيار الكلمة: تناوب بين عادية وأولتراس
+// اختيار الكلمة: عشوائي 50/50
 function randomWord(roomId) {
-  // 50% عادية، 50% أولتراس — بلا تناوب
   if (Math.random() < 0.5) {
     return {
       word: NORMAL_WORDS[Math.floor(Math.random() * NORMAL_WORDS.length)],
@@ -177,7 +177,11 @@ io.on('connection', (socket) => {
 
     io.to(roomId).emit('chat', { name: socket.data.name, text, id: socket.id });
 
-    if (text.trim() === room.currentWord) {
+    // مقارنة مرنة: بلا حروف كبيرة، بلا مسافات
+    const normalize = (s) => s.toLowerCase().replace(/\s+/g, '');
+    const isCorrect = normalize(text) === normalize(room.currentWord);
+
+    if (isCorrect) {
       room.guessedThisRound.push(socket.id);
       const bonus = Math.max(10, room.timeLeft);
       room.scores[socket.id] = (room.scores[socket.id] || 0) + bonus;

@@ -2,7 +2,10 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1e1e2e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <title>🎨 ارسم وخمن</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -11,34 +14,36 @@
 <!-- شاشة الدخول -->
 <div id="login">
   <h1>🎨 ارسم وخمن</h1>
-  <input id="nameInput" placeholder="سميتك..." maxlength="15">
-  <input id="roomInput" placeholder="كود الغرفة..." maxlength="15">
+  <input id="nameInput" placeholder="سميتك..." maxlength="15" autocomplete="off">
+  <input id="roomInput" placeholder="كود الغرفة..." maxlength="15" autocomplete="off">
   <button id="joinBtn">دخول</button>
 </div>
 
 <!-- اللعبة -->
 <div id="game" style="display:none">
   <header>
-    <div id="roomInfo">🏠 الغرفة: <span id="roomCode"></span></div>
+    <div id="roomInfo">🏠 <span id="roomCode"></span></div>
     <div id="timerDisplay">⏰ 80</div>
-    <div id="wordDisplay">الكلمة: <span id="wordHint">-</span></div>
+    <div id="wordDisplay">
+      <img id="logoPreview" style="display:none;" alt="logo" />
+      <span id="wordHint">-</span>
+    </div>
   </header>
 
   <main>
     <aside id="sidebar">
       <h3>👥 اللاعبين</h3>
       <ul id="playerList"></ul>
-      <hr>
       <h3>💬 الدردشة</h3>
       <div id="chatBox"></div>
       <div id="guessArea">
-        <input id="guessInput" placeholder="خمن الكلمة..." maxlength="30">
+        <input id="guessInput" placeholder="خمن الكلمة..." maxlength="30" autocomplete="off">
         <button id="guessBtn">إرسال</button>
       </div>
     </aside>
 
     <section id="canvasArea">
-      <canvas id="canvas" width="800" height="600"></canvas>
+      <canvas id="canvas"></canvas>
       <div id="toolbar">
         <button class="color" data-color="#000000" style="background:#000"></button>
         <button class="color" data-color="#e74c3c" style="background:#e74c3c"></button>
@@ -49,14 +54,15 @@
         <input type="range" id="brushSize" min="1" max="30" value="5">
         <button id="eraserBtn">🧽 ممحاة</button>
         <button id="clearBtn">🗑️ مسح</button>
-
       </div>
     </section>
   </main>
+
   <div id="micPanel">
     <button id="micBtn">🎤 تشغيل المايك</button>
     <span id="micStatus">المايك مطفي</span>
   </div>
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>

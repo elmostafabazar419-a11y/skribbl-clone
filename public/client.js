@@ -73,27 +73,19 @@ socket.on('your-word', (word, logo) => {
 });
 
 function showLogo(url) {
-  let img = document.getElementById('logoPreview');
-  if (!img) {
-    img = document.createElement('img');
-    img.id = 'logoPreview';
-    img.style.cssText = `
-      position: fixed;
-      top: 60px;
-      right: 10px;
-      max-width: 180px;
-      max-height: 180px;
-      background: #fff;
-      border-radius: 10px;
-      padding: 5px;
-      z-index: 1000;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-      border: 3px solid #6c5ce7;
-    `;
-    document.body.appendChild(img);
-  }
+  const img = document.getElementById('logoPreview');
+  if (!img) return;
   img.src = url;
-  img.style.display = 'block';
+  img.style.display = 'inline-block';
+  img.onerror = () => {
+    console.error('❌ اللوغو ما تحملش:', url);
+    img.style.display = 'none';
+  };
+}
+
+function hideLogo() {
+  const img = document.getElementById('logoPreview');
+  if (img) img.style.display = 'none';
 }
 
 function hideLogo() {

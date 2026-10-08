@@ -63,7 +63,26 @@ header {
 }
 header > div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #timerDisplay { font-size: 1.2rem; font-weight: bold; color: #f39c12; flex-shrink: 0; }
-#wordDisplay { font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; }
+#wordDisplay {
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
+}
+
+#logoPreview {
+  height: 40px;
+  width: 40px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 6px;
+  padding: 2px;
+  flex-shrink: 0;
+}
 
 main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 
