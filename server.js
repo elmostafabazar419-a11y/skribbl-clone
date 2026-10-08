@@ -38,16 +38,6 @@ const ULTRAS_WORDS = [
   'ULTRAS MAGANA',
 ];
 
-// ============ البوت ============
-const BOT_NAMES = ['🤖 روبو', '🤖 بوت', '🤖 آلي'];
-const BOT_ID_PREFIX = 'BOT_';
-
-let botCounter = 0;
-
-function isBot(id) {
-  return id && id.startsWith(BOT_ID_PREFIX);
-}
-
 const rooms = {};
 
 // اختيار الكلمة: تناوب بين عادية وأولتراس
@@ -59,10 +49,8 @@ function randomWord(roomId) {
   let type;
 
   if (lastType === 'ultras') {
-    // إلا كانت اللي قبل أولتراس، هادي عادية
     type = 'normal';
   } else {
-    // إلا كانت عادية، 50% عادية، 50% أولتراس
     type = Math.random() < 0.5 ? 'normal' : 'ultras';
   }
 
@@ -91,158 +79,9 @@ function stopGame(roomId) {
     clearInterval(room.timer);
     room.timer = null;
   }
-  if (room.botGuessTimer) {
-    clearTimeout(room.botGuessTimer);
-    room.botGuessTimer = null;
-  }
-  if (room.botDrawTimer) {
-    clearInterval(room.botDrawTimer);
-    room.botDrawTimer = null;
-  }
   room.drawerId = null;
   room.currentWord = null;
   broadcastPlayers(roomId);
-}
-
-// ============ إضافة البوت ============
-function addBot(roomId) {
-  const room = rooms[roomId];
-  if (!room) return;
-  if (room.players.find(p => isBot(p.id))) return;
-
-  botCounter++;
-  const botId = BOT_ID_PREFIX + botCounter;
-  const botName = BOT_NAMES[botCounter % BOT_NAMES.length];
-
-  room.players.push({ id: botId, name: botName });
-  room.scores[botId] = 0;
-
-  io.to(roomId).emit('system-message', `🤖 ${botName} دخل للغرفة`);
-  broadcastPlayers(roomId);
-
-  if (room.players.length >= 2 && !room.timer) {
-    startRound(roomId);
-  }
-}
-
-// ============ حذف البوت ============
-function removeBot(roomId) {
-  const room = rooms[roomId];
-  if (!room) return;
-  const bot = room.players.find(p => isBot(p.id));
-  if (!bot) return;
-
-  room.players = room.players.filter(p => !isBot(p.id));
-  delete room.scores[bot.id];
-
-  io.to(roomId).emit('system-message', `🤖 ${bot.name} خرج`);
-  broadcastPlayers(roomId);
-
-  if (room.drawerId === bot.id) {
-    if (room.timer) {
-      clearInterval(room.timer);
-      room.timer = null;
-    }
-    startRound(roomId);
-  }
-}
-
-// ============ رسم البوت ============
-function botDraw(roomId, word) {
-  const room = rooms[roomId];
-  if (!room) return;
-  if (room.drawerId !== room.players.find(p => isBot(p.id))?.id) return;
-
-  const shapes = getShapesForWord(word);
-  let step = 0;
-
-  if (room.botDrawTimer) clearInterval(room.botDrawTimer);
-
-  room.botDrawTimer = setInterval(() => {
-    if (step >= shapes.length) {
-      clearInterval(room.botDrawTimer);
-      room.botDrawTimer = null;
-      return;
-    }
-
-    const line = shapes[step];
-    io.to(roomId).emit('draw', line);
-    step++;
-  }, 300);
-}
-
-// ============ أشكال البوت (بالنسب 0-1) ============
-function getShapesForWord(word) {
-  const lines = [];
-
-  const addLine = (x0, y0, x1, y1, color = '#000', size = 4) => {
-    lines.push({ x0, y0, x1, y1, color, size });
-  };
-
-  const cx = 0.5, cy = 0.5;
-
-  // إطار
-  addLine(cx - 0.15, cy - 0.15, cx + 0.15, cy - 0.15);
-  addLine(cx + 0.15, cy - 0.15, cx + 0.15, cy + 0.15);
-  addLine(cx + 0.15, cy + 0.15, cx - 0.15, cy + 0.15);
-  addLine(cx - 0.15, cy + 0.15, cx - 0.15, cy - 0.15);
-
-  // عيون
-  addLine(cx - 0.05, cy - 0.05, cx - 0.05, cy);
-  addLine(cx + 0.05, cy - 0.05, cx + 0.05, cy);
-
-  // فم
-  addLine(cx - 0.05, cy + 0.07, cx + 0.05, cy + 0.07);
-
-  if (word.length > 3) {
-    addLine(cx - 0.12, cy + 0.13, cx + 0.12, cy + 0.13, '#6c5ce7', 3);
-  }
-
-  return lines;
-}
-
-// ============ تخمين البوت ============
-function scheduleBotGuess(roomId) {
-  const room = rooms[roomId];
-  if (!room) return;
-  const bot = room.players.find(p => isBot(p.id));
-  if (!bot) return;
-  if (room.drawerId === bot.id) return;
-
-  const delay = 3000 + Math.random() * 7000;
-
-  if (room.botGuessTimer) clearTimeout(room.botGuessTimer);
-
-  room.botGuessTimer = setTimeout(() => {
-    const room = rooms[roomId];
-    if (!room || !room.currentWord) return;
-    if (room.drawerId === bot.id) return;
-    if (room.guessedThisRound.includes(bot.id)) return;
-
-    const willGuessCorrect = Math.random() < 0.7;
-
-    if (willGuessCorrect) {
-      const word = room.currentWord;
-      room.guessedThisRound.push(bot.id);
-      const bonus = Math.max(10, room.timeLeft);
-      room.scores[bot.id] = (room.scores[bot.id] || 0) + bonus;
-      io.to(roomId).emit('chat', { name: bot.name, text: word, id: bot.id });
-      io.to(roomId).emit('system-message', `🎉 ${bot.name} خمن الكلمة! (+${bonus})`);
-      broadcastPlayers(roomId);
-
-      const guessers = room.players.filter(p => p.id !== room.drawerId);
-      if (room.guessedThisRound.length >= guessers.length) {
-        clearInterval(room.timer);
-        room.timer = null;
-        io.to(roomId).emit('system-message', `✅ الكلمة كانت: ${room.currentWord}`);
-        setTimeout(() => startRound(roomId), 3000);
-      }
-    } else {
-      const wrongGuesses = ['ما عرفت', 'شي حاجة', 'صعبة', '؟؟؟'];
-      const wrong = wrongGuesses[Math.floor(Math.random() * wrongGuesses.length)];
-      io.to(roomId).emit('chat', { name: bot.name, text: wrong, id: bot.id });
-    }
-  }, delay);
 }
 
 function startRound(roomId) {
@@ -267,12 +106,6 @@ function startRound(roomId) {
 
   broadcastPlayers(roomId);
   io.to(roomId).emit('system-message', `✏️ دور ${room.players[idx].name} يرسم!`);
-
-  if (isBot(room.drawerId)) {
-    setTimeout(() => botDraw(roomId, room.currentWord), 1000);
-  } else {
-    scheduleBotGuess(roomId);
-  }
 
   if (room.timer) clearInterval(room.timer);
   room.timeLeft = 80;
@@ -312,11 +145,6 @@ io.on('connection', (socket) => {
 
     io.to(roomId).emit('system-message', `👋 ${name} دخل للغرفة`);
     broadcastPlayers(roomId);
-
-    const realPlayers = room.players.filter(p => !isBot(p.id));
-    if (realPlayers.length >= 2) {
-      removeBot(roomId);
-    }
 
     if (room.players.length >= 2 && !room.timer) {
       startRound(roomId);
@@ -370,12 +198,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('add-bot', () => {
-    const roomId = socket.data.roomId;
-    if (!roomId) return;
-    addBot(roomId);
-  });
-
   socket.on('mic-on', (peerId) => {
     socket.to(socket.data.roomId).emit('peer-mic-on', peerId);
   });
@@ -393,19 +215,12 @@ io.on('connection', (socket) => {
     io.to(roomId).emit('system-message', `👋 ${socket.data.name} خرج`);
     broadcastPlayers(roomId);
 
-    const realPlayers = room.players.filter(p => !isBot(p.id));
-    if (realPlayers.length === 1 && !room.players.find(p => isBot(p.id))) {
-      setTimeout(() => addBot(roomId), 1000);
-    }
-
-    if (realPlayers.length < 1) {
+    if (room.players.length < 2 && room.timer) {
       stopGame(roomId);
     }
 
     if (room.players.length === 0) {
       if (room.timer) clearInterval(room.timer);
-      if (room.botGuessTimer) clearTimeout(room.botGuessTimer);
-      if (room.botDrawTimer) clearInterval(room.botDrawTimer);
       delete rooms[roomId];
     }
   });

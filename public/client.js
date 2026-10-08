@@ -331,14 +331,6 @@ function playAudio(peerId, stream) {
   audio.play().catch(e => console.log('audio play error:', e));
 }
 
-// ============ زر البوت ============
-const addBotBtn = document.getElementById('addBotBtn');
-if (addBotBtn) {
-  addBotBtn.onclick = () => {
-    socket.emit('add-bot');
-  };
-}
-
 window.addEventListener('resize', resizeCanvas);
 window.addEventListener('orientationchange', () => {
   setTimeout(resizeCanvas, 300);
