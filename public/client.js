@@ -59,19 +59,53 @@ socket.on('players', (players) => {
   toolbar.style.pointerEvents = isDrawer ? 'auto' : 'none';
 });
 
-socket.on('your-word', (word) => {
-  wordHint.textContent = `✏️ ارسم: ${word}`;
+socket.on('your-word', (word, logo) => {
+  wordHint.innerHTML = `✏️ ارسم: ${word}`;
   wordHint.style.color = '#2ecc71';
   wordHint.style.fontWeight = 'bold';
   isDrawer = true;
   toolbar.style.opacity = '1';
   toolbar.style.pointerEvents = 'auto';
+
+  if (logo) {
+    showLogo(logo);
+  }
 });
+
+function showLogo(url) {
+  let img = document.getElementById('logoPreview');
+  if (!img) {
+    img = document.createElement('img');
+    img.id = 'logoPreview';
+    img.style.cssText = `
+      position: fixed;
+      top: 60px;
+      right: 10px;
+      max-width: 180px;
+      max-height: 180px;
+      background: #fff;
+      border-radius: 10px;
+      padding: 5px;
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      border: 3px solid #6c5ce7;
+    `;
+    document.body.appendChild(img);
+  }
+  img.src = url;
+  img.style.display = 'block';
+}
+
+function hideLogo() {
+  const img = document.getElementById('logoPreview');
+  if (img) img.style.display = 'none';
+}
 
 socket.on('word-length', (len) => {
   wordHint.textContent = `الكلمة: ${'_ '.repeat(len)} (${len} حروف)`;
   wordHint.style.color = '#fff';
   wordHint.style.fontWeight = 'normal';
+  hideLogo();
 });
 
 socket.on('timer', (t) => {
@@ -87,7 +121,6 @@ socket.on('chat', ({ name, text }) => {
   addChat(`${name}: ${text}`);
 });
 
-// ============ الشات للرسام ============
 socket.on('chat-message', ({ name, text }) => {
   addChat(`${name}: ${text}`);
 });
