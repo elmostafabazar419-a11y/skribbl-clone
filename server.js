@@ -9,13 +9,15 @@ const io = new Server(server, { cors: { origin: '*' } });
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-const WORDS = [
-  // كلمات عربية
+// ============ الكلمات ============
+const NORMAL_WORDS = [
   'قطة', 'كلب', 'شمس', 'قمر', 'بيت', 'شجرة', 'طوموبيل', 'كتاب',
   'طاولة', 'كرسي', 'باب', 'شباك', 'بحر', 'جبل', 'مطار', 'طائرة',
   'قطار', 'مفتاح', 'ساعة', 'نظارة', 'حوت', 'تفاحة', 'موز', 'بيتزا',
-  'قهوة', 'حلوى', 'وردة', 'نجمة', 'سحابة', 'مطر', 'ثلج', 'خبز',
-  // أسماء الأولتراس
+  'قهوة', 'حلوى', 'وردة', 'نجمة', 'سحابة', 'مطر', 'ثلج', 'خبز'
+];
+
+const ULTRAS_WORDS = [
   'SHARK FAMILY',
   'CRAZY BOYS',
   'ULTRAS HERCULES',
@@ -53,8 +55,26 @@ function isBot(id) {
 
 const rooms = {};
 
-function randomWord() {
-  return WORDS[Math.floor(Math.random() * WORDS.length)];
+// اختيار الكلمة: تناوب بين عادية وأولتراس
+function randomWord(roomId) {
+  const room = rooms[roomId];
+  if (!room) return NORMAL_WORDS[Math.floor(Math.random() * NORMAL_WORDS.length)];
+
+  const lastType = room.lastWordType || 'normal';
+  let type;
+
+  if (lastType === 'ultras') {
+    // إلا كانت اللي قبل أولتراس، هادي عادية
+    type = 'normal';
+  } else {
+    // إلا كانت عادية، 50% عادية، 50% أولتراس
+    type = Math.random() < 0.5 ? 'normal' : 'ultras';
+  }
+
+  room.lastWordType = type;
+
+  const list = type === 'ultras' ? ULTRAS_WORDS : NORMAL_WORDS;
+  return list[Math.floor(Math.random() * list.length)];
 }
 
 function broadcastPlayers(roomId) {
@@ -164,10 +184,9 @@ function getShapesForWord(word) {
     lines.push({ x0, y0, x1, y1, color, size });
   };
 
-  // إحداثيات نسبية (0-1) — كتخدم على جميع الشاشات
   const cx = 0.5, cy = 0.5;
 
-  // إطار (مربع)
+  // إطار
   addLine(cx - 0.15, cy - 0.15, cx + 0.15, cy - 0.15);
   addLine(cx + 0.15, cy - 0.15, cx + 0.15, cy + 0.15);
   addLine(cx + 0.15, cy + 0.15, cx - 0.15, cy + 0.15);
@@ -180,7 +199,6 @@ function getShapesForWord(word) {
   // فم
   addLine(cx - 0.05, cy + 0.07, cx + 0.05, cy + 0.07);
 
-  // خط إضافي إلا كانت الكلمة طويلة
   if (word.length > 3) {
     addLine(cx - 0.12, cy + 0.13, cx + 0.12, cy + 0.13, '#6c5ce7', 3);
   }
@@ -245,7 +263,7 @@ function startRound(roomId) {
   room.round = (room.round || 0) + 1;
   const idx = room.round % room.players.length;
   room.drawerId = room.players[idx].id;
-  room.currentWord = randomWord();
+  room.currentWord = randomWord(roomId);
   room.guessedThisRound = [];
 
   io.to(roomId).emit('clear-canvas');
