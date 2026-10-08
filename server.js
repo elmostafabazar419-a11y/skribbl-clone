@@ -41,25 +41,15 @@ const rooms = {};
 
 // اختيار الكلمة: تناوب بين عادية وأولتراس
 function randomWord(roomId) {
-  const room = rooms[roomId];
-  if (!room) return { word: NORMAL_WORDS[Math.floor(Math.random() * NORMAL_WORDS.length)], logo: null };
-
-  const lastType = room.lastWordType || 'normal';
-  let type;
-
-  if (lastType === 'ultras') {
-    type = 'normal';
+  // 50% عادية، 50% أولتراس — بلا تناوب
+  if (Math.random() < 0.5) {
+    return {
+      word: NORMAL_WORDS[Math.floor(Math.random() * NORMAL_WORDS.length)],
+      logo: null
+    };
   } else {
-    type = Math.random() < 0.5 ? 'normal' : 'ultras';
-  }
-
-  room.lastWordType = type;
-
-  if (type === 'ultras') {
     const item = ULTRAS_WORDS[Math.floor(Math.random() * ULTRAS_WORDS.length)];
     return { word: item.name, logo: item.logo };
-  } else {
-    return { word: NORMAL_WORDS[Math.floor(Math.random() * NORMAL_WORDS.length)], logo: null };
   }
 }
 
