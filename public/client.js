@@ -191,6 +191,7 @@ clearBtn.onclick = () => {
 let peer = null;
 let localStream = null;
 let calls = {};
+let pendingPeers = new Set();
 const micBtn = document.getElementById('micBtn');
 const micStatus = document.getElementById('micStatus');
 
@@ -200,6 +201,7 @@ micBtn.onclick = async () => {
     localStream = null;
     Object.values(calls).forEach(c => c.close());
     calls = {};
+    pendingPeers.clear();
     if (peer) peer.destroy();
     peer = null;
     micBtn.textContent = '🎤 تشغيل المايك';
@@ -216,31 +218,40 @@ micBtn.onclick = async () => {
     micStatus.textContent = 'المايك خدام';
 
     peer = new Peer(socket.id, {
-  config: {
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-      {
-        urls: 'turn:openrelay.metered.ca:80',
-        username: 'openrelayproject',
-        credential: 'openrelayproject'
-      },
-      {
-        urls: 'turn:openrelay.metered.ca:443',
-        username: 'openrelayproject',
-        credential: 'openrelayproject'
-      },
-      {
-        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-        username: 'openrelayproject',
-        credential: 'openrelayproject'
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+          {
+            urls: 'turn:openrelay.metered.ca:80',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+          },
+          {
+            urls: 'turn:openrelay.metered.ca:443',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+          },
+          {
+            urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+          }
+        ]
       }
-    ]
-  }
-});
+    });
 
     peer.on('open', (id) => {
       socket.emit('mic-on', id);
+
+      // عيط لكل اللي كيستناو
+      pendingPeers.forEach((peerId) => {
+        if (calls[peerId]) return;
+        const call = peer.call(peerId, localStream);
+        call.on('stream', (remoteStream) => playAudio(peerId, remoteStream));
+        calls[peerId] = call;
+      });
+      pendingPeers.clear();
     });
 
     peer.on('call', (call) => {
@@ -256,7 +267,11 @@ micBtn.onclick = async () => {
 };
 
 socket.on('peer-mic-on', (peerId) => {
-  if (!peer || !localStream) return;
+  // إلا مازال ما شعلناش المايك، سجلو واستنى
+  if (!peer || !localStream) {
+    pendingPeers.add(peerId);
+    return;
+  }
   if (calls[peerId]) return;
   const call = peer.call(peerId, localStream);
   call.on('stream', (remoteStream) => playAudio(peerId, remoteStream));
@@ -268,6 +283,7 @@ socket.on('peer-mic-off', (peerId) => {
     calls[peerId].close();
     delete calls[peerId];
   }
+  pendingPeers.delete(peerId);
   const audio = document.getElementById('audio-' + peerId);
   if (audio) audio.remove();
 });
@@ -278,9 +294,9 @@ function playAudio(peerId, stream) {
     audio = document.createElement('audio');
     audio.id = 'audio-' + peerId;
     audio.autoplay = true;
+    audio.playsInline = true;
     document.body.appendChild(audio);
   }
   audio.srcObject = stream;
+  audio.play().catch(e => console.log('audio play error:', e));
 }
-
-window.addEventListener('resize', resizeCanvas);
