@@ -16,7 +16,6 @@ body {
   color: #fff;
 }
 
-/* ============ شاشة الدخول ============ */
 #login {
   display: flex;
   flex-direction: column;
@@ -47,7 +46,6 @@ body {
 #login button:hover { background: #5b4dd1; }
 #login button:active { transform: scale(0.97); }
 
-/* ============ اللعبة ============ */
 #game { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
 
 header {
@@ -86,7 +84,6 @@ header > div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 
-/* ============ Sidebar ============ */
 #sidebar {
   width: 280px;
   background: #2a2a3e;
@@ -152,7 +149,6 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   font-weight: bold;
 }
 
-/* ============ Canvas ============ */
 #canvasArea {
   flex: 1;
   display: flex;
@@ -239,7 +235,6 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   accent-color: #6c5ce7;
 }
 
-/* ============ Mic ============ */
 #micPanel {
   position: fixed;
   bottom: 10px;
@@ -266,7 +261,6 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 #micBtn.on { background: #2ecc71; }
 #micBtn:active { transform: scale(0.95); }
 
-/* ============ Music Panel ============ */
 #musicPanel {
   position: fixed;
   bottom: 70px;
@@ -313,7 +307,6 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 }
 #musicSelect:focus { outline: 2px solid #6c5ce7; }
 
-/* ============ Mobile / Tablet ============ */
 @media (max-width: 900px) {
   main {
     flex-direction: column-reverse;
@@ -393,7 +386,6 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   #musicSelect { font-size: 0.65rem; padding: 3px 5px; }
 }
 
-/* Landscape on mobile */
 @media (max-height: 500px) and (orientation: landscape) {
   #sidebar {
     max-height: 100vh;

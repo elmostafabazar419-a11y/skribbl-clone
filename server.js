@@ -9,7 +9,6 @@ const io = new Server(server, { cors: { origin: '*' } });
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ============ الكلمات ============
 const NORMAL_WORDS = [
   'قطة', 'كلب', 'شمس', 'قمر', 'بيت', 'شجرة', 'طوموبيل', 'كتاب',
   'طاولة', 'كرسي', 'باب', 'شباك', 'بحر', 'جبل', 'مطار', 'طائرة',
@@ -39,7 +38,6 @@ const ULTRAS_WORDS = [
 
 const rooms = {};
 
-// اختيار الكلمة: عشوائي 50/50
 function randomWord(roomId) {
   if (Math.random() < 0.5) {
     return {
@@ -159,7 +157,6 @@ io.on('connection', (socket) => {
     socket.to(roomId).emit('draw-image', dataArray);
   });
 
-
   socket.on('draw', (data) => {
     const roomId = socket.data.roomId;
     if (!roomId) return;
@@ -190,7 +187,6 @@ io.on('connection', (socket) => {
 
     io.to(roomId).emit('chat', { name: socket.data.name, text, id: socket.id });
 
-    // مقارنة مرنة: بلا حروف كبيرة، بلا مسافات
     const normalize = (s) => s.toLowerCase().replace(/\s+/g, '');
     const isCorrect = normalize(text) === normalize(room.currentWord);
 
@@ -211,7 +207,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // ============ الموسيقى ============
   socket.on('music-play', (data) => {
     const roomId = socket.data.roomId;
     if (!roomId) return;

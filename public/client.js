@@ -40,7 +40,6 @@ let snapshot = null;
 let undoStack = [];
 let redoStack = [];
 
-// ============ الموسيقى ============
 const musicBtn = document.getElementById('musicBtn');
 const musicVolume = document.getElementById('musicVolume');
 const musicSelect = document.getElementById('musicSelect');
@@ -66,7 +65,7 @@ function playMusic() {
       musicBtn.textContent = '🔇 إيقاف';
       musicBtn.classList.add('on');
     }
-  }).catch(err => console.error('❌ الموسيقى:', err));
+  }).catch(err => console.error('الموسيقى:', err));
 }
 
 function stopMusic() {
@@ -80,7 +79,6 @@ function stopMusic() {
   }
 }
 
-// ============ الدخول ============
 joinBtn.onclick = () => {
   const name = nameInput.value.trim();
   const room = roomInput.value.trim();
@@ -95,7 +93,6 @@ joinBtn.onclick = () => {
   setTimeout(() => { initMusic(); playMusic(); }, 500);
 };
 
-// ============ اللاعبين ============
 socket.on('players', (players) => {
   playerList.innerHTML = '';
   let iAmDrawer = false;
@@ -123,7 +120,6 @@ socket.on('players', (players) => {
   }
 });
 
-// ============ الكلمة ============
 socket.on('your-word', (word, logo) => {
   wordHint.innerHTML = `✏️ ارسم: ${word}`;
   wordHint.style.color = '#2ecc71';
@@ -154,13 +150,11 @@ socket.on('word-length', (len) => {
   hideLogo();
 });
 
-// ============ التايمر ============
 socket.on('timer', (t) => {
   timerDisplay.textContent = `⏰ ${t}`;
   timerDisplay.style.color = t <= 10 ? '#e74c3c' : '#f39c12';
 });
 
-// ============ الشات ============
 socket.on('system-message', (msg) => addChat(msg, 'system'));
 socket.on('chat', ({ name, text }) => addChat(`${name}: ${text}`));
 socket.on('chat-message', ({ name, text }) => addChat(`${name}: ${text}`));
@@ -183,7 +177,6 @@ function sendMessage() {
 guessBtn.onclick = sendMessage;
 guessInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
 
-// ============ الرسم ============
 socket.on('clear-canvas', () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   undoStack = [];
@@ -246,7 +239,6 @@ function restoreSnapshot(data) {
   ctx.putImageData(data, 0, 0);
 }
 
-// ============ أدوات ============
 function selectTool(tool) {
   currentTool = tool;
   isEraser = false;
@@ -320,7 +312,6 @@ function drawPreviewShape(x0, y0, x1, y1, color, size, type) {
   }
 }
 
-// ============ Fill ============
 function floodFill(x, y, fillColor) {
   const w = canvas.width;
   const h = canvas.height;
@@ -370,7 +361,6 @@ function hexToRgb(hex) {
   ];
 }
 
-// ============ أحداث ============
 function startDraw(e) {
   if (!isDrawer) return;
   e.preventDefault();
@@ -464,7 +454,6 @@ clearBtn.onclick = () => {
   socket.emit('clear-canvas');
 };
 
-// ============ المايك ============
 let peer = null;
 let localStream = null;
 let calls = {};
@@ -559,7 +548,6 @@ function playAudio(pid, stream) {
   audio.play().catch(e => console.log('audio play error:', e));
 }
 
-// ============ أزرار الموسيقى ============
 if (musicBtn) {
   musicBtn.onclick = () => {
     if (!isHost) return;
@@ -593,6 +581,5 @@ socket.on('music-pause', () => { if (isHost) return; stopMusic(); });
 socket.on('music-volume', (v) => { if (isHost) return; if (musicAudio) musicAudio.volume = v / 100; if (musicVolume) musicVolume.value = v; });
 socket.on('music-track', (t) => { if (isHost) return; if (musicAudio) musicAudio.pause(); initMusic(t); });
 
-// ============ Resize ============
 window.addEventListener('resize', resizeCanvas);
 window.addEventListener('orientationchange', () => { setTimeout(resizeCanvas, 300); });
