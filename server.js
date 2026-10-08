@@ -104,7 +104,7 @@ function startRound(roomId) {
   io.to(roomId).emit('system-message', `✏️ دور ${room.players[idx].name} يرسم!`);
 
   if (room.timer) clearInterval(room.timer);
-  room.timeLeft = 80;
+  room.timeLeft = 120;
   io.to(roomId).emit('timer', room.timeLeft);
   room.timer = setInterval(() => {
     room.timeLeft--;
@@ -146,6 +146,19 @@ io.on('connection', (socket) => {
       startRound(roomId);
     }
   });
+
+  socket.on('draw-shape', (data) => {
+    const roomId = socket.data.roomId;
+    if (!roomId) return;
+    socket.to(roomId).emit('draw-shape', data);
+  });
+
+  socket.on('draw-image', (dataArray) => {
+    const roomId = socket.data.roomId;
+    if (!roomId) return;
+    socket.to(roomId).emit('draw-image', dataArray);
+  });
+
 
   socket.on('draw', (data) => {
     const roomId = socket.data.roomId;

@@ -217,6 +217,22 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 #toolbar button:active { transform: scale(0.95); }
 #toolbar button.on { background: #2ecc71; }
 
+.tool-btn {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background: #35354a;
+  color: #fff;
+  cursor: pointer;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.tool-btn:hover { background: #45455a; }
+.tool-btn.on {
+  background: #6c5ce7;
+  border-color: #fff;
+}
+
 #brushSize {
   width: 80px;
   flex-shrink: 0;
@@ -276,7 +292,6 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   color: #fff;
   cursor: pointer;
   font-weight: bold;
-  transition: background 0.2s;
 }
 #musicBtn.on { background: #2ecc71; }
 #musicBtn:active { transform: scale(0.95); }
@@ -330,6 +345,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   #toolbar { padding: 6px 8px; gap: 5px; flex-shrink: 0; width: 100%; }
   .color { width: 28px; height: 28px; }
   #toolbar button { padding: 6px 10px; font-size: 0.75rem; }
+  .tool-btn { padding: 5px 8px; font-size: 0.9rem; }
   #brushSize { width: 70px; }
 
   header { font-size: 0.75rem; padding: 6px 8px; flex-shrink: 0; }
@@ -365,6 +381,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   #toolbar { gap: 4px; padding: 4px 6px; }
   .color { width: 24px; height: 24px; }
   #toolbar button { padding: 5px 8px; font-size: 0.7rem; }
+  .tool-btn { padding: 4px 6px; font-size: 0.85rem; }
 
   #musicPanel {
     bottom: 55px;

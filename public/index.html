@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
@@ -6,24 +6,24 @@
   <meta name="theme-color" content="#1e1e2e">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>🎨 ارسم وخمن</title>
+  <title>ًںژ¨ ط§ط±ط³ظ… ظˆط®ظ…ظ†</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- شاشة الدخول -->
+<!-- ط´ط§ط´ط© ط§ظ„ط¯ط®ظˆظ„ -->
 <div id="login">
-  <h1>🎨 ارسم وخمن</h1>
-  <input id="nameInput" placeholder="سميتك..." maxlength="15" autocomplete="off">
-  <input id="roomInput" placeholder="كود الغرفة..." maxlength="15" autocomplete="off">
-  <button id="joinBtn">دخول</button>
+  <h1>ًںژ¨ ط§ط±ط³ظ… ظˆط®ظ…ظ†</h1>
+  <input id="nameInput" placeholder="ط³ظ…ظٹطھظƒ..." maxlength="15" autocomplete="off">
+  <input id="roomInput" placeholder="ظƒظˆط¯ ط§ظ„ط؛ط±ظپط©..." maxlength="15" autocomplete="off">
+  <button id="joinBtn">ط¯ط®ظˆظ„</button>
 </div>
 
-<!-- اللعبة -->
+<!-- ط§ظ„ظ„ط¹ط¨ط© -->
 <div id="game" style="display:none">
   <header>
-    <div id="roomInfo">🏠 <span id="roomCode"></span></div>
-    <div id="timerDisplay">⏰ 80</div>
+    <div id="roomInfo">ًںڈ  <span id="roomCode"></span></div>
+    <div id="timerDisplay">âڈ° 120</div>
     <div id="wordDisplay">
       <img id="logoPreview" style="display:none;" alt="logo" />
       <span id="wordHint">-</span>
@@ -32,42 +32,61 @@
 
   <main>
     <aside id="sidebar">
-      <h3>👥 اللاعبين</h3>
+      <h3>ًں‘¥ ط§ظ„ظ„ط§ط¹ط¨ظٹظ†</h3>
       <ul id="playerList"></ul>
-      <h3>💬 الدردشة</h3>
+      <h3>ًں’¬ ط§ظ„ط¯ط±ط¯ط´ط©</h3>
       <div id="chatBox"></div>
       <div id="guessArea">
-        <input id="guessInput" placeholder="خمن الكلمة..." maxlength="30" autocomplete="off">
-        <button id="guessBtn">إرسال</button>
+        <input id="guessInput" placeholder="ط®ظ…ظ† ط§ظ„ظƒظ„ظ…ط©..." maxlength="30" autocomplete="off">
+        <button id="guessBtn">ط¥ط±ط³ط§ظ„</button>
       </div>
     </aside>
 
     <section id="canvasArea">
       <canvas id="canvas"></canvas>
+
       <div id="toolbar">
+        <!-- ط§ظ„ط£ظ„ظˆط§ظ† -->
         <button class="color" data-color="#000000" style="background:#000"></button>
+        <button class="color" data-color="#ffffff" style="background:#fff;border:2px solid #888"></button>
         <button class="color" data-color="#e74c3c" style="background:#e74c3c"></button>
-        <button class="color" data-color="#3498db" style="background:#3498db"></button>
+        <button class="color" data-color="#e67e22" style="background:#e67e22"></button>
+        <button class="color" data-color="#f1c40f" style="background:#f1c40f"></button>
         <button class="color" data-color="#2ecc71" style="background:#2ecc71"></button>
-        <button class="color" data-color="#f39c12" style="background:#f39c12"></button>
+        <button class="color" data-color="#1abc9c" style="background:#1abc9c"></button>
+        <button class="color" data-color="#3498db" style="background:#3498db"></button>
         <button class="color" data-color="#9b59b6" style="background:#9b59b6"></button>
-        <input type="range" id="brushSize" min="1" max="30" value="5">
-        <button id="eraserBtn">🧽 ممحاة</button>
-        <button id="clearBtn">🗑️ مسح</button>
+        <button class="color" data-color="#e91e63" style="background:#e91e63"></button>
+        <button class="color" data-color="#8b4513" style="background:#8b4513"></button>
+        <button class="color" data-color="#95a5a6" style="background:#95a5a6"></button>
+
+        <!-- ط­ط¬ظ… ط§ظ„ظپط±ط´ط§ط© -->
+        <input type="range" id="brushSize" min="1" max="50" value="5">
+
+        <!-- ط§ظ„ط£ط¯ظˆط§طھ -->
+        <button id="penBtn" class="tool-btn on" title="ظ‚ظ„ظ…">âœڈï¸ڈ</button>
+        <button id="lineBtn" class="tool-btn" title="ط®ط·">ًں“ڈ</button>
+        <button id="rectBtn" class="tool-btn" title="ظ…ط³طھط·ظٹظ„">â¬œ</button>
+        <button id="circleBtn" class="tool-btn" title="ط¯ط§ط¦ط±ط©">â­•</button>
+        <button id="fillBtn" class="tool-btn" title="ظ…ظ„ط،">ًںژ¨</button>
+        <button id="eraserBtn" class="tool-btn" title="ظ…ظ…ط­ط§ط©">ًں§½</button>
+        <button id="undoBtn" class="tool-btn" title="طھط±ط§ط¬ط¹">â†©ï¸ڈ</button>
+        <button id="redoBtn" class="tool-btn" title="ط¥ط¹ط§ط¯ط©">â†ھï¸ڈ</button>
+        <button id="clearBtn">ًں—‘ï¸ڈ ظ…ط³ط­</button>
       </div>
     </section>
   </main>
 
   <div id="micPanel">
-    <button id="micBtn">🎤 تشغيل المايك</button>
-    <span id="micStatus">المايك مطفي</span>
+    <button id="micBtn">ًںژ¤ طھط´ط؛ظٹظ„ ط§ظ„ظ…ط§ظٹظƒ</button>
+    <span id="micStatus">ط§ظ„ظ…ط§ظٹظƒ ظ…ط·ظپظٹ</span>
   </div>
 
   <div id="musicPanel">
-    <button id="musicBtn">🎵 تشغيل</button>
+    <button id="musicBtn">ًںژµ طھط´ط؛ظٹظ„</button>
     <input type="range" id="musicVolume" min="0" max="100" value="50" />
     <select id="musicSelect">
-      <option value="song1.mp3">🎵 أغنية 1</option>
+      <option value="dl.mp3">ًںژµ ط§ظ„ط£ط؛ظ†ظٹط©</option>
     </select>
   </div>
 </div>
